@@ -15,6 +15,41 @@
 		<a class="btn btn-default" href="{% url 'post_remove' pk=post.pk %}"><span class="glyphicon glyphicon-remove"></span></a>
         <h2>{{ post.title }}</h2>
         <p>{{ post.text|linebreaksbr }}</p>
+        <div>
+             {{ post.views }} views
+        </div>
+        {% if reacted == False %}
+            <a href="{% url 'post_like' pk=post.pk %}">
+                <span class="glyphicon glyphicon-thumbs-up"></span>
+                    {{ post.like_count }} </a>
+                    <div> | </div>
+            <a href="{% url 'post_deslike' pk=post.pk %}">
+                <span class="glyphicon glyphicon-thumbs-down"></span>
+                    {{ post.deslike_count }}
+            </a>
+            {% else %}
+                {% if liked %}
+                     <a href="{% url 'post_like' pk=post.pk %}">
+                        <span class="glyphicon glyphicon-thumbs-up"></span>
+                        {{ post.like_count }}
+                    </a>
+                {% else %}
+                     <a href="{% url 'post_deslike' pk=post.pk %}">
+                     <span class="glyphicon glyphicon-thumbs-down"></span>
+                         {{ post.deslike_count }}
+                    </a>
+            {% endif %}
+        {% endif %}
+        <div> 
+            <a href="{% url 'post_like' pk=post.pk %}">
+                <span class="glyphicon glyphicon-thumbs-up"></span>
+                    {{ percent_likes|floatformat }} % &nbsp; | &nbsp;
+                    <a href="{% url 'post_deslike' pk=post.pk %}">
+                <span class="glyphicon glyphicon-thumbs-down"></span>
+                    {{ percent_deslikes|floatformat }} % 
+            </a>
+            </a>
+        </div>
     </div>
     <hr>
     <a class="btn btn-default" href="{% url 'add_comment_to_post' pk=post.pk %}">Add comment</a>
@@ -30,7 +65,6 @@
                 </div>
                 <strong>{{ comment.author }}</strong>
                 <p>{{ comment.text|linebreaks }}</p>
-            </div>
         {% endif %}
     {% empty %}
         <p>No comments here yet :(</p>

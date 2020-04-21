@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.utils import timezone
-from .models import Post, Comment
+from .models import Post, Comment, PostLike, PostDeslike
 from django.shortcuts import render, get_object_or_404
 from .forms import PostForm, CommentForm
 from django.shortcuts import redirect
@@ -12,7 +12,39 @@ def post_list(request):
 
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
+    post.views += 1
+    post.save()
+    likes_count = PostLike.objects.filter(post_id= pk, user= request.user).count()
+    deslikes_count = PostDeslike.objects.filter(post_id = pk, user= request.user).count()
+    if likes_count > 0:
+        liked = True
+    else:
+        liked = False
+
+    if deslikes_count > 0:
+        desliked = True
+    else:
+        desliked = False 
+
+    if liked or desliked:
+        reacted = True
+    else:
+        reacted = False
+         
+    if reacted:    
+        percent_likes = (likes_count / (likes_count + deslikes_count))* 100
+        percent_deslikes = (deslikes_count / (likes_count + deslikes_count))* 100
+    else:
+        percent_deslikes = 0
+        percent_likes = 0
+
+    return render(request, 'blog/post_detail.html', {
+        'post': post,
+        'liked': liked,
+        'reacted': reacted,
+        'percent_likes': percent_likes,
+        'percent_deslikes': percent_deslikes}
+        )
     
 @login_required
 def post_new(request):
@@ -57,8 +89,15 @@ def post_publish(request, pk):
 def post_remove(request, pk):
     post = get_object_or_404(Post, pk=pk)
     post.delete()
-
     return redirect('post_list')
+
+def post_like(request, pk):
+    post_like, created = PostLike.objects.get_or_create(post_id=pk, user=request.user)
+    return redirect('post_detail', pk=pk)
+
+def post_deslike(request, pk):
+    post_deslike, created = PostDeslike.objects.get_or_create(post_id=pk, user=request.user)
+    return redirect('post_detail', pk=pk)
 
 def add_comment_to_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
