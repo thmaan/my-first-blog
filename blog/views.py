@@ -15,10 +15,22 @@ def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     post.views += 1
     post.save()
-    likes_count = PostLike.objects.filter(post_id= pk, user= request.user).count()
-    deslikes_count = PostDeslike.objects.filter(post_id = pk, user= request.user).count()
+    likes_count = PostLike.objects.filter(post_id= pk).count()
+    deslikes_count = PostDeslike.objects.filter(post_id = pk).count()
+    
+    percent_likes = 0
+    percent_deslikes = 0
+    total_reactions = likes_count + deslikes_count
+
+    if total_reactions == 0:
+        percent_likes = 0
+        percent_deslikes = 0
+    else:
+        percent_likes = likes_count / total_reactions * 100
+        percent_deslikes = deslikes_count / total_reactions * 100
+
     if likes_count > 0:
-        liked = True
+        liked = True 
     else:
         liked = False
 
@@ -30,15 +42,8 @@ def post_detail(request, pk):
     if liked or desliked:
         reacted = True
     else:
-        reacted = False
-
-    if reacted:    
-        percent_likes = (likes_count / (likes_count + deslikes_count))* 100
-        percent_deslikes = (deslikes_count / (likes_count + deslikes_count))* 100
-    else:
-        percent_deslikes = 0
-        percent_likes = 0
-
+        reacted = False     
+   
     return render(request, 'blog/post_detail.html', {
         'post': post,
         'liked': liked,
